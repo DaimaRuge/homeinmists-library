@@ -39,6 +39,7 @@ const source = data.source;
     </nav>
 
     <p class="book-count">{tag} · 共 {total} 冊</p>
+    <p class="cat-desc" id="catDesc"></p>
 
     <div id="bookList" class="book-list"></div>
     <div id="pagination" class="pagination"></div>
@@ -49,7 +50,8 @@ const source = data.source;
     <p>書目數據來源：<a href={source} target="_blank">白雲深處人家逍遙子</a></p>
   </footer>
 
-  <script define:vars={{ BOOKS: filtered, BASE_URL: 'https://www.homeinmists.com/', PER_PAGE: 50 }}>
+  <script define:vars={{ BOOKS: filtered, BASE_URL: 'https://www.homeinmists.com/', PER_PAGE: 50, TAG: tag, DESC: data.categoryDescriptions?.[tag] || '' }}>
+    document.getElementById('catDesc').textContent = DESC;
     let currentPage = 1;
     let filtered = [];
 
