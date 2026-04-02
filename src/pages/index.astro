@@ -54,6 +54,8 @@ const allBooksFlat = Object.values(data.books).flat();
     .book-row .b-title{font-size:.9rem;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .book-row .b-title .hl{background:rgba(143,188,143,.25);padding:0 2px;border-radius:2px;color:var(--accent)}
     .book-row .b-brief{font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1rem}
+    .book-row .b-dl{font-size:.85rem;color:var(--accent);text-decoration:none;flex-shrink:0;padding:.15rem .3rem;border-radius:.25rem;transition:all .2s;opacity:.6}
+    .book-row .b-dl:hover{opacity:1;background:rgba(143,188,143,.1)}
     .book-row .b-fmt{font-size:.68rem;padding:.1rem .4rem;border-radius:.25rem;background:var(--tag-bg);color:var(--text-muted);border:1px solid rgba(143,188,143,.15);flex-shrink:0}
     .book-row .b-fmt.pdf{background:rgba(45,80,22,.08);color:var(--accent)}
     .book-detail{display:none;padding:0 .75rem .75rem 2rem;border-left:2px solid var(--accent-pale);margin-left:.75rem}
@@ -132,7 +134,7 @@ const allBooksFlat = Object.values(data.books).flat();
       if(b.summary)h+='<div class="d-summary">'+b.summary+'</div>';
       if(b.tags&&b.tags.length)h+='<div class="d-tags">'+b.tags.map(function(t){return'<span class="d-tag">'+t+'</span>';}).join('')+'</div>';
       h+='<a class="d-link" href="'+url+'" target="_blank">查閱 / 下載 ↗</a>';
-      return'<div class="book-item"><div class="book-row" id="br-'+idx+'" onclick="toggle('+idx+')"><span class="arrow">▶</span><div class="b-core"><div class="b-title">'+title+'</div>'+(brief?'<div class="b-brief">'+brief+'</div>':'')+'</div><span class="b-fmt '+fc+'">'+fmt+'</span></div><div class="book-detail" id="bd-'+idx+'">'+h+'</div></div>';
+      return'<div class="book-item"><div class="book-row" id="br-'+idx+'" onclick="toggle('+idx+')"><span class="arrow">▶</span><div class="b-core"><div class="b-title">'+title+'</div>'+(brief?'<div class="b-brief">'+brief+'</div>':'')+'</div><a class="b-dl" href="'+url+'" target="_blank" onclick="event.stopPropagation()" title="下載">⬇</a><span class="b-fmt '+fc+'">'+fmt+'</span></div><div class="book-detail" id="bd-'+idx+'">'+h+'</div></div>';
     }
     function getQ(){return(new URLSearchParams(window.location.search).get('q')||'').toLowerCase();}
     function filter(){var q=getQ();return ALL_BOOKS.filter(function(b){if(!q)return true;return b.title.toLowerCase().indexOf(q)!==-1||(b.tags&&b.tags.join(' ').toLowerCase().indexOf(q)!==-1)||(b.summary&&b.summary.toLowerCase().indexOf(q)!==-1);});}
