@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="白雲深處人家·中華傳統道文化數字圖書館書目索引" />
+  <link rel="icon" type="image/x-icon" href="https://www.homeinmists.com/DaoD/%E3%80%87.ico" />
+  <title>白雲深處人家 · 道文化書目索引</title>
+  <style is:global>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #faf8f5;
+      --text: #2c2c2c;
+      --text-light: #666;
+      --accent: #8b4513;
+      --border: #e0d8cf;
+      --card-bg: #fff;
+      --tag-bg: #f0ebe3;
+    }
+
+    body {
+      font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+
+    header a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .stats span {
+      background: var(--tag-bg);
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    .search-box {
+      max-width: 500px;
+      margin: 1.5rem auto;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 2rem;
+      font-size: 1rem;
+      font-family: inherit;
+      background: var(--card-bg);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .search-box::before {
+      content: '🔍';
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.9rem;
+    }
+
+    .nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .nav-tabs a {
+      padding: 0.4rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 0.4rem;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .nav-tabs a:hover,
+    .nav-tabs a.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .book-count {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .book-list {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .book-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: box-shadow 0.2s;
+    }
+
+    .book-item:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .book-id {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      white-space: nowrap;
+      min-width: 60px;
+    }
+
+    .book-title {
+      flex: 1;
+      font-size: 0.95rem;
+    }
+
+    .book-title .highlight {
+      background: #fff3cd;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    .book-format {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 0.3rem;
+      background: var(--tag-bg);
+      color: var(--text-light);
+      white-space: nowrap;
+    }
+
+    .book-format.pdf { background: #e8f5e9; color: #2e7d32; }
+    .book-format.webpage { background: #e3f2fd; color: #1565c0; }
+
+    .book-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .book-link:hover {
+      text-decoration: underline;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .pagination a, .pagination span {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 0.3rem;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    .pagination .current {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .pagination a:hover {
+      background: var(--tag-bg);
+    }
+
+    footer {
+      text-align: center;
+      padding: 3rem 0 2rem;
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+      color: var(--text-light);
+      font-size: 0.85rem;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-light);
+    }
+
+    @media (max-width: 640px) {
+      .container { padding: 1rem; }
+      header h1 { font-size: 1.5rem; }
+      .book-item { flex-wrap: wrap; }
+      .book-id { min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <slot />
+</body>
+</html>

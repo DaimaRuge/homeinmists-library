@@ -1,0 +1,136 @@
+---
+import Base from '../layouts/Base.astro';
+import data from '../data/books.json';
+
+const { books, categories, totalEntries, lastUpdated, source } = data;
+const catNames = Object.keys(books);
+---
+
+<Base>
+  <div class="container">
+    <header>
+      <h1>白雲深處人家</h1>
+      <p>中華傳統道文化數字圖書館 · 書目索引</p>
+      <p><a href={source} target="_blank">原始來源</a> · 最後更新：{lastUpdated}</p>
+      <div class="stats">
+        <span>共 {totalEntries} 冊</span>
+        {catNames.map(c => (
+          <span><a href={`/${c}/`} style="color:var(--accent);text-decoration:none">{c} {categories[c]}</a></span>
+        ))}
+      </div>
+    </header>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="搜索书名、作者..." />
+    </div>
+
+    <nav class="nav-tabs">
+      <a href="/" class="active">全部</a>
+      {catNames.map(c => (
+        <a href={`/${c}/`}>{c} ({categories[c]})</a>
+      ))}
+    </nav>
+
+    <div id="bookList" class="book-list"></div>
+    <div id="pagination" class="pagination"></div>
+  </div>
+
+  <footer>
+    <p>書目數據來源：<a href={source} target="_blank">白雲深處人家逍遙子</a></p>
+    <p>本站僅提供索引，所有古籍資源版權歸原作者所有</p>
+  </footer>
+
+  <script define:vars={{ ALL_BOOKS: books, BASE_URL: 'https://www.homeinmists.com/', PER_PAGE: 50 }}>
+    let currentPage = 1;
+    let filtered = [];
+
+    function getSearchQuery() {
+      return new URLSearchParams(window.location.search).get('q') || '';
+    }
+
+    function getHash() {
+      return window.location.hash.slice(1) || '';
+    }
+
+    function filterBooks() {
+      const q = getSearchQuery().toLowerCase();
+      if (!q) return ALL_BOOKS[getHash()] || [];
+      const all = Object.values(ALL_BOOKS).flat();
+      return all.filter(function(b) { return b.title.toLowerCase().includes(q); });
+    }
+
+    function renderList() {
+      filtered = filterBooks();
+      const total = Math.ceil(filtered.length / PER_PAGE);
+      if (currentPage > total) currentPage = total || 1;
+
+      const start = (currentPage - 1) * PER_PAGE;
+      const page = filtered.slice(start, start + PER_PAGE);
+
+      const list = document.getElementById('bookList');
+      const q = getSearchQuery();
+
+      if (page.length === 0) {
+        list.innerHTML = '<div class="no-results">未找到匹配的書目</div>';
+      } else {
+        list.innerHTML = page.map(function(b) {
+          let title = b.title;
+          if (q) {
+            const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+            title = b.title.replace(re, '<span class="highlight">$1</span>');
+          }
+          const url = b.id.startsWith('http') ? b.id : BASE_URL + b.id;
+          let fmt = '外鏈';
+          if (b.format === 'pdf') fmt = 'PDF';
+          else if (b.format === 'webpage') fmt = '網頁';
+          const fmtClass = b.format;
+          const idShort = b.id.replace(/^.*\//, '');
+          return '<div class="book-item"><span class="book-id">' + idShort + '</span><span class="book-title">' + title + '</span><span class="book-format ' + fmtClass + '">' + fmt + '</span><a class="book-link" href="' + url + '" target="_blank">下載 ↗</a></div>';
+        }).join('');
+      }
+
+      const pag = document.getElementById('pagination');
+      if (total <= 1) {
+        pag.innerHTML = '';
+        return;
+      }
+      let html = '';
+      for (let i = 1; i <= total; i++) {
+        if (i === currentPage) html += '<span class="current">' + i + '</span>';
+        else html += '<a href="#" onclick="goPage(' + i + ');return false">' + i + '</a>';
+      }
+      pag.innerHTML = html;
+    }
+
+    window.goPage = function(p) {
+      currentPage = p;
+      renderList();
+      window.scrollTo(0, 0);
+    };
+
+    const input = document.getElementById('searchInput');
+    input.value = getSearchQuery();
+    let debounce;
+    input.addEventListener('input', function() {
+      clearTimeout(debounce);
+      debounce = setTimeout(function() {
+        const q = input.value.trim();
+        const url = new URL(window.location);
+        if (q) url.searchParams.set('q', q);
+        else url.searchParams.delete('q');
+        history.replaceState(null, '', url);
+        currentPage = 1;
+        renderList();
+      }, 300);
+    });
+
+    const hash = getHash();
+    document.querySelectorAll('.nav-tabs a').forEach(function(a) {
+      const href = a.getAttribute('href');
+      const isActive = hash === '' ? href === '/' : href === '/' + hash + '/';
+      a.classList.toggle('active', isActive);
+    });
+
+    renderList();
+  </script>
+</Base>
