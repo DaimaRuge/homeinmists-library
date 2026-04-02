@@ -119,6 +119,7 @@ const allBooksFlat = Object.values(data.books).flat();
     }
     function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
     function toggle(idx){var r=document.getElementById('br-'+idx),d=document.getElementById('bd-'+idx);if(r&&d){r.classList.toggle('open');d.classList.toggle('open');}}
+    window.toggle=toggle;
     function renderBook(b,idx,q){
       var p=parse(b.title),title=p.core||b.title;
       if(q){var re=new RegExp('('+esc(q)+')','gi');title=title.replace(re,'<span class="hl">$1</span>');}
@@ -159,8 +160,8 @@ const allBooksFlat = Object.values(data.books).flat();
     render();
   </script>
   <script>
-    var toggle=document.getElementById('menuToggle'),sidebar=document.querySelector('.sidebar'),overlay=document.getElementById('sidebarOverlay');
-    if(toggle){toggle.addEventListener('click',function(){sidebar.classList.toggle('open');overlay.classList.toggle('open');});overlay.addEventListener('click',function(){sidebar.classList.remove('open');overlay.classList.remove('open');});}
+    var menuBtn=document.getElementById('menuToggle'),sidebar=document.querySelector('.sidebar'),overlay=document.getElementById('sidebarOverlay');
+    if(menuBtn){menuBtn.addEventListener('click',function(){sidebar.classList.toggle('open');overlay.classList.toggle('open');});overlay.addEventListener('click',function(){sidebar.classList.remove('open');overlay.classList.remove('open');});}
     var mi=document.getElementById('mobileSearchInput'),si=document.getElementById('searchInput');
     if(mi&&si)mi.addEventListener('input',function(){si.value=mi.value;si.dispatchEvent(new Event('input'));});
   </script>
