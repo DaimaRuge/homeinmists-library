@@ -3,73 +3,85 @@ import Base from '../layouts/Base.astro';
 import data from '../data/books.json';
 
 const { books, categories, totalEntries, lastUpdated, source } = data;
-const catNames = Object.keys(books);
+const sortedTags = Object.entries(categories || {}).sort((a, b) => b[1] - a[1]);
 ---
 
 <Base>
   <div class="container">
     <header>
-      <h1>白雲深處人家</h1>
-      <p>中華傳統道文化數字圖書館 · 書目索引</p>
+      <h1>琅嬛福地</h1>
+      <p>中華傳統道文化數字圖書館</p>
       <p><a href={source} target="_blank">原始來源</a> · 最後更新：{lastUpdated}</p>
       <div class="stats">
         <span>共 {totalEntries} 冊</span>
-        {catNames.map(c => (
-          <span><a href={`/${c}/`} style="color:var(--accent);text-decoration:none">{c} {categories[c]}</a></span>
+        <span>{sortedTags.length} 個分類標籤</span>
+        {sortedTags.slice(0, 15).map(([t, c]) => (
+          <span>{t} {c}</span>
         ))}
       </div>
     </header>
 
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="搜索书名、作者..." />
+      <input type="text" id="searchInput" placeholder="搜索书名、作者、标签..." />
     </div>
 
-    <nav class="nav-tabs">
-      <a href="/" class="active">全部</a>
-      {catNames.map(c => (
-        <a href={`/${c}/`}>{c} ({categories[c]})</a>
+    <nav class="nav-tabs" id="navTabs">
+      <a href="/" class="active" data-tag="">全部</a>
+      {sortedTags.map(([t, c]) => (
+        <a href={`?tag=${encodeURIComponent(t)}`} data-tag={t}>{t} ({c})</a>
       ))}
     </nav>
 
+    <p class="book-count" id="bookCount"></p>
     <div id="bookList" class="book-list"></div>
     <div id="pagination" class="pagination"></div>
   </div>
 
   <footer>
+    <p>琅嬛福地 · 中華傳統道文化數字圖書館</p>
     <p>書目數據來源：<a href={source} target="_blank">白雲深處人家逍遙子</a></p>
     <p>本站僅提供索引，所有古籍資源版權歸原作者所有</p>
   </footer>
 
-  <script define:vars={{ ALL_BOOKS: books, BASE_URL: 'https://www.homeinmists.com/', PER_PAGE: 50 }}>
+  <script define:vars={{ ALL_BOOKS: Object.values(books).flat(), BASE_URL: 'https://www.homeinmists.com/', PER_PAGE: 50 }}>
     let currentPage = 1;
     let filtered = [];
+    let activeTag = '';
 
-    function getSearchQuery() {
-      return new URLSearchParams(window.location.search).get('q') || '';
-    }
-
-    function getHash() {
-      return window.location.hash.slice(1) || '';
+    function getParams() {
+      const p = new URLSearchParams(window.location.search);
+      return {
+        q: (p.get('q') || '').toLowerCase(),
+        tag: p.get('tag') || ''
+      };
     }
 
     function filterBooks() {
-      const q = getSearchQuery().toLowerCase();
-      if (!q) return ALL_BOOKS[getHash()] || [];
-      const all = Object.values(ALL_BOOKS).flat();
-      return all.filter(function(b) { return b.title.toLowerCase().includes(q); });
+      const { q, tag } = getParams();
+      activeTag = tag;
+      return ALL_BOOKS.filter(function(b) {
+        if (tag && (!b.tags || b.tags.indexOf(tag) === -1)) return false;
+        if (q) {
+          const inTitle = b.title.toLowerCase().indexOf(q) !== -1;
+          const inTags = b.tags && b.tags.join(' ').toLowerCase().indexOf(q) !== -1;
+          const inSummary = b.summary && b.summary.toLowerCase().indexOf(q) !== -1;
+          return inTitle || inTags || inSummary;
+        }
+        return true;
+      });
     }
 
     function renderList() {
       filtered = filterBooks();
       const total = Math.ceil(filtered.length / PER_PAGE);
       if (currentPage > total) currentPage = total || 1;
-
       const start = (currentPage - 1) * PER_PAGE;
       const page = filtered.slice(start, start + PER_PAGE);
+      const { q } = getParams();
+
+      document.getElementById('bookCount').textContent = '共 ' + filtered.length + ' 冊';
 
       const list = document.getElementById('bookList');
-      const q = getSearchQuery();
-
       if (page.length === 0) {
         list.innerHTML = '<div class="no-results">未找到匹配的書目</div>';
       } else {
@@ -83,52 +95,53 @@ const catNames = Object.keys(books);
           let fmt = '外鏈';
           if (b.format === 'pdf') fmt = 'PDF';
           else if (b.format === 'webpage') fmt = '網頁';
-          const fmtClass = b.format;
           const idShort = b.id.replace(/^.*\//, '');
-          return '<div class="book-item"><span class="book-id">' + idShort + '</span><span class="book-title">' + title + '</span><span class="book-format ' + fmtClass + '">' + fmt + '</span><a class="book-link" href="' + url + '" target="_blank">下載 ↗</a></div>';
+          const tagsHtml = (b.tags || []).map(function(t) { return '<span class="book-tag">' + t + '</span>'; }).join('');
+          const summaryHtml = b.summary ? '<div class="book-summary">' + b.summary + '</div>' : '';
+          return '<div class="book-item"><span class="book-id">' + idShort + '</span><div class="book-info"><div class="book-title">' + title + '</div>' + summaryHtml + '</div><div class="book-tags">' + tagsHtml + '</div><span class="book-format ' + b.format + '">' + fmt + '</span><a class="book-link" href="' + url + '" target="_blank">下載 ↗</a></div>';
         }).join('');
       }
 
+      // Pagination
       const pag = document.getElementById('pagination');
-      if (total <= 1) {
-        pag.innerHTML = '';
-        return;
-      }
+      if (total <= 1) { pag.innerHTML = ''; return; }
       let html = '';
-      for (let i = 1; i <= total; i++) {
+      const maxShow = 7;
+      let startP = Math.max(1, currentPage - 3);
+      let endP = Math.min(total, startP + maxShow - 1);
+      if (endP - startP < maxShow - 1) startP = Math.max(1, endP - maxShow + 1);
+      if (startP > 1) html += '<a href="#" onclick="goPage(1);return false">1</a><span>…</span>';
+      for (let i = startP; i <= endP; i++) {
         if (i === currentPage) html += '<span class="current">' + i + '</span>';
         else html += '<a href="#" onclick="goPage(' + i + ');return false">' + i + '</a>';
       }
+      if (endP < total) html += '<span>…</span><a href="#" onclick="goPage(' + total + ');return false">' + total + '</a>';
       pag.innerHTML = html;
     }
 
-    window.goPage = function(p) {
-      currentPage = p;
-      renderList();
-      window.scrollTo(0, 0);
-    };
+    window.goPage = function(p) { currentPage = p; renderList(); window.scrollTo(0, 0); };
 
     const input = document.getElementById('searchInput');
-    input.value = getSearchQuery();
+    const { q, tag } = getParams();
+    input.value = q;
+
     let debounce;
     input.addEventListener('input', function() {
       clearTimeout(debounce);
       debounce = setTimeout(function() {
-        const q = input.value.trim();
+        const val = input.value.trim();
         const url = new URL(window.location);
-        if (q) url.searchParams.set('q', q);
-        else url.searchParams.delete('q');
+        if (val) url.searchParams.set('q', val); else url.searchParams.delete('q');
         history.replaceState(null, '', url);
         currentPage = 1;
         renderList();
       }, 300);
     });
 
-    const hash = getHash();
+    // Active tag highlighting
     document.querySelectorAll('.nav-tabs a').forEach(function(a) {
-      const href = a.getAttribute('href');
-      const isActive = hash === '' ? href === '/' : href === '/' + hash + '/';
-      a.classList.toggle('active', isActive);
+      const t = a.getAttribute('data-tag');
+      a.classList.toggle('active', t === tag);
     });
 
     renderList();

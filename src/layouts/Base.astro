@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="白雲深處人家·中華傳統道文化數位圖書館書目索引" />
+  <meta name="description" content="琅嬛福地·中華傳統道文化數字圖書館書目索引" />
   <link rel="icon" type="image/x-icon" href="https://www.homeinmists.com/DaoD/%E3%80%87.ico" />
-  <title>白雲深處人家 · 道文化書目索引</title>
+  <title>琅嬛福地 · 中華傳統道文化數字圖書館</title>
   <style is:global>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&display=swap');
 
@@ -38,45 +38,26 @@
       overflow-x: hidden;
     }
 
-    /* 宣纸底纹 + 云雾 */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background:
-        /* 宣纸纹理 */
-        repeating-linear-gradient(
-          0deg,
-          transparent,
-          transparent 2px,
-          rgba(180, 165, 130, 0.03) 2px,
-          rgba(180, 165, 130, 0.03) 4px
-        ),
-        repeating-linear-gradient(
-          90deg,
-          transparent,
-          transparent 3px,
-          rgba(180, 165, 130, 0.02) 3px,
-          rgba(180, 165, 130, 0.02) 6px
-        ),
-        /* 云雾渐变 */
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(180, 165, 130, 0.03) 2px, rgba(180, 165, 130, 0.03) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(180, 165, 130, 0.02) 3px, rgba(180, 165, 130, 0.02) 6px),
         radial-gradient(ellipse 80% 50% at 20% 10%, var(--mist1) 0%, transparent 70%),
         radial-gradient(ellipse 60% 40% at 80% 20%, var(--mist2) 0%, transparent 60%),
         radial-gradient(ellipse 90% 60% at 50% 90%, var(--mist1) 0%, transparent 50%),
         radial-gradient(ellipse 40% 30% at 70% 60%, var(--mist2) 0%, transparent 50%),
-        /* 底色 */
         linear-gradient(175deg, #f5f0e8 0%, #efe8d8 40%, #f0ebe0 70%, #f5f0e8 100%);
       pointer-events: none;
       z-index: -2;
     }
 
-    /* 山水剪影 SVG 背景装饰 */
     body::after {
       content: '';
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       height: 200px;
       background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 200' preserveAspectRatio='none'%3E%3Cpath d='M0,200 L0,140 Q80,60 160,110 Q240,160 320,100 Q400,40 480,90 Q560,140 640,80 Q720,20 800,70 Q880,120 960,60 Q1040,0 1120,50 Q1200,100 1280,40 Q1360,80 1440,30 L1440,200 Z' fill='rgba(45,80,22,0.04)'/%3E%3Cpath d='M0,200 L0,160 Q120,100 240,130 Q360,160 480,120 Q600,80 720,110 Q840,140 960,100 Q1080,60 1200,90 Q1320,120 1440,80 L1440,200 Z' fill='rgba(91,138,60,0.03)'/%3E%3C/svg%3E") no-repeat bottom center;
       background-size: 100% 100%;
@@ -98,7 +79,6 @@
       position: relative;
     }
 
-    /* 标题装饰线 */
     header::after {
       content: '';
       display: block;
@@ -108,7 +88,6 @@
       background: linear-gradient(90deg, transparent, var(--accent-pale), transparent);
     }
 
-    /* 云纹装饰 */
     header::before {
       content: '☁';
       position: absolute;
@@ -168,7 +147,6 @@
       border: 1px solid rgba(143, 188, 143, 0.2);
     }
 
-    /* 搜索框 - 山水意境 */
     .search-box {
       max-width: 520px;
       margin: 1.5rem auto;
@@ -227,6 +205,7 @@
       font-size: 0.88rem;
       transition: all 0.25s ease;
       background: transparent;
+      cursor: pointer;
     }
 
     .nav-tabs a:hover {
@@ -252,7 +231,6 @@
       gap: 0.6rem;
     }
 
-    /* 毛玻璃卡片 */
     .book-item {
       background: var(--card-bg);
       backdrop-filter: blur(12px);
@@ -281,8 +259,12 @@
       opacity: 0.7;
     }
 
-    .book-title {
+    .book-info {
       flex: 1;
+      min-width: 0;
+    }
+
+    .book-title {
       font-size: 0.93rem;
     }
 
@@ -291,6 +273,32 @@
       padding: 0 2px;
       border-radius: 2px;
       color: var(--accent);
+    }
+
+    .book-summary {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .book-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .book-tag {
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 0.25rem;
+      background: rgba(91, 138, 60, 0.1);
+      color: var(--accent-light);
+      border: 1px solid rgba(91, 138, 60, 0.15);
+      white-space: nowrap;
     }
 
     .book-format {
@@ -314,9 +322,7 @@
       transition: color 0.2s;
     }
 
-    .book-link:hover {
-      color: var(--accent-light);
-    }
+    .book-link:hover { color: var(--accent-light); }
 
     .pagination {
       display: flex;
@@ -380,15 +386,12 @@
       body::after { height: 120px; }
       header::before { display: none; }
       .nav-tabs a { font-size: 0.82rem; padding: 0.35rem 0.7rem; }
+      .book-tags { display: none; }
     }
 
-    /* 滚动条美化 */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb {
-      background: var(--accent-pale);
-      border-radius: 3px;
-    }
+    ::-webkit-scrollbar-thumb { background: var(--accent-pale); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--accent-light); }
   </style>
 </head>

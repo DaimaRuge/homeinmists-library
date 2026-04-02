@@ -2,23 +2,28 @@
 import Base from '../layouts/Base.astro';
 import data from '../data/books.json';
 
+const sortedTags = Object.entries(data.categories || {}).sort((a, b) => b[1] - a[1]);
+
 export function getStaticPaths() {
-  return Object.keys(data.books).map(cat => ({
-    params: { category: cat },
+  const tags = Object.entries(data.categories || {}).sort((a, b) => b[1] - a[1]);
+  return tags.map(([tag]) => ({
+    params: { tag },
   }));
 }
 
-const { category } = Astro.params;
-const books = data.books[category] || [];
-const total = data.categories[category] || 0;
+const { tag } = Astro.params;
+// Flatten books from all categories
+const allBooks = Object.values(data.books).flat();
+const filtered = allBooks.filter(b => b.tags && b.tags.includes(tag));
+const total = filtered.length;
 const source = data.source;
 ---
 
 <Base>
   <div class="container">
     <header>
-      <h1>白雲深處人家</h1>
-      <p>中華傳統道文化數字圖書館 · 書目索引</p>
+      <h1>琅嬛福地</h1>
+      <p>中華傳統道文化數字圖書館</p>
       <p><a href={source} target="_blank">原始來源</a></p>
     </header>
 
@@ -26,24 +31,25 @@ const source = data.source;
       <input type="text" id="searchInput" placeholder="搜索书名、作者..." />
     </div>
 
-    <nav class="nav-tabs">
+    <nav class="nav-tabs" id="navTabs">
       <a href="/">全部</a>
-      {Object.entries(data.categories).map(([k, v]) => (
-        <a href={`/${k}/`} class:list={[{ active: k === category }]}>{k} ({v})</a>
+      {sortedTags.map(([t, c]) => (
+        <a href={`/${encodeURIComponent(t)}/`} class:list={[{ active: t === tag }]}>{t} ({c})</a>
       ))}
     </nav>
 
-    <p class="book-count">{category} · 共 {total} 冊</p>
+    <p class="book-count">{tag} · 共 {total} 冊</p>
 
     <div id="bookList" class="book-list"></div>
     <div id="pagination" class="pagination"></div>
   </div>
 
   <footer>
+    <p>琅嬛福地 · 中華傳統道文化數字圖書館</p>
     <p>書目數據來源：<a href={source} target="_blank">白雲深處人家逍遙子</a></p>
   </footer>
 
-  <script define:vars={{ BOOKS: books, BASE_URL: 'https://www.homeinmists.com/', PER_PAGE: 50 }}>
+  <script define:vars={{ BOOKS: filtered, BASE_URL: 'https://www.homeinmists.com/', PER_PAGE: 50 }}>
     let currentPage = 1;
     let filtered = [];
 
@@ -54,7 +60,11 @@ const source = data.source;
     function filterBooks() {
       const q = getSearchQuery().toLowerCase();
       if (!q) return BOOKS;
-      return BOOKS.filter(b => b.title.toLowerCase().includes(q));
+      return BOOKS.filter(function(b) {
+        return b.title.toLowerCase().indexOf(q) !== -1 ||
+          (b.tags && b.tags.join(' ').toLowerCase().indexOf(q) !== -1) ||
+          (b.summary && b.summary.toLowerCase().indexOf(q) !== -1);
+      });
     }
 
     function renderList() {
@@ -69,7 +79,7 @@ const source = data.source;
       if (page.length === 0) {
         list.innerHTML = '<div class="no-results">未找到匹配的書目</div>';
       } else {
-        list.innerHTML = page.map(b => {
+        list.innerHTML = page.map(function(b) {
           let title = b.title;
           if (q) {
             const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
@@ -79,19 +89,26 @@ const source = data.source;
           let fmt = '外鏈';
           if (b.format === 'pdf') fmt = 'PDF';
           else if (b.format === 'webpage') fmt = '網頁';
-          const fmtClass = b.format;
           const idShort = b.id.replace(/^.*\//, '');
-          return '<div class="book-item"><span class="book-id">' + idShort + '</span><span class="book-title">' + title + '</span><span class="book-format ' + fmtClass + '">' + fmt + '</span><a class="book-link" href="' + url + '" target="_blank">下載 ↗</a></div>';
+          const tagsHtml = (b.tags || []).map(function(t) { return '<span class="book-tag">' + t + '</span>'; }).join('');
+          const summaryHtml = b.summary ? '<div class="book-summary">' + b.summary + '</div>' : '';
+          return '<div class="book-item"><span class="book-id">' + idShort + '</span><div class="book-info"><div class="book-title">' + title + '</div>' + summaryHtml + '</div><div class="book-tags">' + tagsHtml + '</div><span class="book-format ' + b.format + '">' + fmt + '</span><a class="book-link" href="' + url + '" target="_blank">下載 ↗</a></div>';
         }).join('');
       }
 
       const pag = document.getElementById('pagination');
       if (totalP <= 1) { pag.innerHTML = ''; return; }
       let html = '';
-      for (let i = 1; i <= totalP; i++) {
+      const maxShow = 7;
+      let startP = Math.max(1, currentPage - 3);
+      let endP = Math.min(totalP, startP + maxShow - 1);
+      if (endP - startP < maxShow - 1) startP = Math.max(1, endP - maxShow + 1);
+      if (startP > 1) html += '<a href="#" onclick="goPage(1);return false">1</a><span>…</span>';
+      for (let i = startP; i <= endP; i++) {
         if (i === currentPage) html += '<span class="current">' + i + '</span>';
         else html += '<a href="#" onclick="goPage(' + i + ');return false">' + i + '</a>';
       }
+      if (endP < totalP) html += '<span>…</span><a href="#" onclick="goPage(' + totalP + ');return false">' + totalP + '</a>';
       pag.innerHTML = html;
     }
 
