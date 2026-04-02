@@ -1,17 +1,13 @@
 ---
 import data from '../data/books.json';
 
-const allBooks = Array.isArray(data.books) ? data.books : Object.values(data.books).flat();
-const allBooksFlat = allBooks;
-const catMap = {};
-allBooks.forEach(b => (b.tags || []).forEach(t => { catMap[t] = (catMap[t] || 0) + 1; }));
-const sortedTags = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+const { categories } = data;
+const sortedTags = Object.entries(categories || {}).sort((a, b) => b[1] - a[1]);
+const allBooksFlat = Object.values(data.books).flat();
 
 export function getStaticPaths() {
-  const books = Array.isArray(data.books) ? data.books : Object.values(data.books).flat();
-  const cm = {};
-  books.forEach(b => (b.tags || []).forEach(t => { cm[t] = (cm[t] || 0) + 1; }));
-  const tags = Object.entries(cm).sort((a, b) => b[1] - a[1]);
+  const cats = data.categories || {};
+  const tags = Object.entries(cats).sort((a, b) => b[1] - a[1]);
   return tags.map(([tag]) => ({ params: { tag } }));
 }
 

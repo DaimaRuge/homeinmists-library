@@ -1,13 +1,9 @@
 ---
 import data from '../data/books.json';
 
-const { totalEntries, lastUpdated, source } = data;
-const allBooks = Array.isArray(data.books) ? data.books : Object.values(data.books).flat();
-const allBooksFlat = allBooks;
-// 从 tags 动态统计分类
-const catMap = {};
-allBooks.forEach(b => (b.tags || []).forEach(t => { catMap[t] = (catMap[t] || 0) + 1; }));
-const sortedTags = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+const { categories, totalEntries, lastUpdated, source } = data;
+const sortedTags = Object.entries(categories || {}).sort((a, b) => b[1] - a[1]);
+const allBooksFlat = Object.values(data.books).flat();
 ---
 
 <!DOCTYPE html>
