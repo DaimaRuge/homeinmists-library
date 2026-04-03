@@ -74,7 +74,7 @@ const desc = data.categoryDescriptions?.[tag] || '';
     .book-detail.open{display:block}
     .book-detail .d-row{font-size:.82rem;margin-bottom:.25rem}
     .book-detail .d-label{color:var(--text-muted);display:inline-block;min-width:3.5em}
-    .book-detail .d-summary{font-size:.83rem;color:var(--text-light);font-weight:300;margin:.5rem 0 .3rem;padding:.4rem .5rem;background:rgba(143,188,143,.06);border-radius:.3rem}
+    .book-detail .d-desc{font-size:.83rem;color:var(--text-light);font-weight:300;margin:.5rem 0 .3rem;padding:.4rem .5rem;background:rgba(143,188,143,.06);border-radius:.3rem}
     .book-detail .d-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin:.3rem 0}
     .book-detail .d-tag{font-size:.72rem;padding:.1rem .45rem;border-radius:.25rem;background:rgba(91,138,60,.1);color:var(--accent-light);border:1px solid rgba(91,138,60,.15)}
     .book-detail .d-link{display:inline-block;margin-top:.3rem;font-size:.82rem;color:var(--accent);text-decoration:none;padding:.25rem .7rem;border:1px solid var(--accent-pale);border-radius:.3rem;transition:all .2s}
@@ -144,7 +144,7 @@ const desc = data.categoryDescriptions?.[tag] || '';
       if(p.dynasty)h+='<div class="d-row"><span class="d-label">朝代</span><span>'+p.dynasty+'</span></div>';
       if(p.author)h+='<div class="d-row"><span class="d-label">作者</span><span>'+p.author+'</span></div>';
       if(p.version)h+='<div class="d-row"><span class="d-label">版本</span><span>'+p.version+'</span></div>';
-      if(b.summary)h+='<div class="d-summary">'+b.summary+'</div>';
+      if(b.summary)h+='<div class="d-desc">📖 '+b.summary+'</div>';
       if(b.tags&&b.tags.length)h+='<div class="d-tags">'+b.tags.map(function(t){return'<span class="d-tag">'+t+'</span>';}).join('')+'</div>';
       h+='<a class="d-link" href="'+url+'" target="_blank">查閱 / 下載 ↗</a>';
       return'<div class="book-item"><div class="book-row" id="br-'+idx+'" onclick="toggle('+idx+')"><span class="arrow">▶</span><div class="b-core"><div class="b-title">'+title+'</div>'+(brief?'<div class="b-brief">'+brief+'</div>':'')+'</div><a class="b-dl" href="'+url+'" target="_blank" onclick="event.stopPropagation()" title="下載">⬇</a><span class="b-fmt '+fc+'">'+fmt+'</span></div><div class="book-detail" id="bd-'+idx+'">'+h+'</div></div>';
