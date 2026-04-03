@@ -1,8 +1,8 @@
 ---
+import Base from '../layouts/Base.astro';
 import data from '../data/books.json';
 
-const { categories } = data;
-const sortedTags = Object.entries(categories || {}).sort((a, b) => b[1] - a[1]);
+const sortedTags = Object.entries(data.categories || {}).sort((a, b) => b[1] - a[1]);
 const allBooksFlat = Object.values(data.books).flat();
 
 export function getStaticPaths() {
@@ -14,168 +14,70 @@ export function getStaticPaths() {
 const { tag } = Astro.params;
 const filtered = allBooksFlat.filter(b => b.tags && b.tags.includes(tag));
 const total = filtered.length;
-const source = data.source;
 const desc = data.categoryDescriptions?.[tag] || '';
 ---
 
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{tag} · 琅嬛福地</title>
-  <style is:global>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700&display=swap');
-    *{margin:0;padding:0;box-sizing:border-box}
-    :root{--bg:#f5f0e8;--text:#2c3e2d;--text-light:#5a6b5a;--text-muted:#8a9a8a;--accent:#2d5016;--accent-light:#5b8a3c;--accent-pale:#8fbc8f;--card-bg:rgba(255,253,248,0.75);--border:rgba(45,80,22,0.12);--tag-bg:rgba(143,188,143,0.15);--shadow:rgba(45,80,22,0.08);--sidebar-w:220px}
-    body{font-family:'Noto Serif SC',serif;background:var(--bg);color:var(--text);line-height:1.8}
-    body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(180,165,130,0.03) 2px,rgba(180,165,130,0.03) 4px),radial-gradient(ellipse 80% 50% at 20% 10%,rgba(212,197,169,0.3) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 80% 20%,rgba(143,188,143,0.15) 0%,transparent 60%),linear-gradient(175deg,#f5f0e8 0%,#efe8d8 40%,#f0ebe0 70%,#f5f0e8 100%);pointer-events:none;z-index:-2}
-    .page-wrap{display:flex;max-width:1400px;margin:0 auto;min-height:100vh}
-    .sidebar{width:var(--sidebar-w);flex-shrink:0;padding:1.5rem 0 2rem 1.5rem;position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--border);background:rgba(245,240,232,0.6);backdrop-filter:blur(8px)}
-    .sidebar-logo{text-align:center;padding:1.5rem 0.5rem 1rem;margin-bottom:1rem;border-bottom:1px solid var(--border)}
-    .sidebar-logo h1{font-size:1.5rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.12em}
-    .sidebar-logo p{color:var(--text-muted);font-size:.75rem;margin-top:.25rem}
-    .sidebar-search{padding:0 .5rem;margin-bottom:.75rem;position:relative}
-    .sidebar-search input{width:100%;padding:.5rem .75rem .5rem 2rem;border:1px solid var(--border);border-radius:1.5rem;font-size:.85rem;font-family:inherit;background:var(--card-bg);color:var(--text);outline:none}
-    .sidebar-search input:focus{border-color:var(--accent-pale);box-shadow:0 2px 12px var(--shadow)}
-    .sidebar-search::before{content:'🔍';position:absolute;left:.8rem;top:50%;transform:translateY(-50%);font-size:.75rem}
-    .sidebar-stats{padding:0 .75rem;margin-bottom:.75rem;font-size:.78rem;color:var(--text-muted)}
-    .sidebar-nav{padding:0 .5rem}
-    .sidebar-nav a{display:flex;justify-content:space-between;padding:.35rem .65rem;border-radius:.3rem;text-decoration:none;color:var(--text);font-size:.82rem;transition:all .2s}
-    .sidebar-nav a:hover{background:var(--tag-bg);color:var(--accent)}
-    .sidebar-nav a.active{background:linear-gradient(135deg,var(--accent),var(--accent-light));color:#fff;font-weight:600}
-    .sidebar-nav .count{font-size:.72rem;opacity:.7}
-    .sidebar-footer{padding:1rem .75rem 0;margin-top:1rem;border-top:1px solid var(--border);font-size:.72rem;color:var(--text-muted)}
-    .sidebar-footer a{color:var(--accent-light);text-decoration:none}
-    .main-content{flex:1;min-width:0;padding:1.5rem 2rem 2rem}
-    .cat-header{margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
-    .cat-header h2{font-size:1.3rem;font-weight:600;color:var(--accent)}
-    .cat-header .cat-desc{font-size:.85rem;color:var(--text-light);font-weight:300}
-    .cat-header .cat-count{font-size:.8rem;color:var(--text-muted);margin-top:.2rem}
-    .mobile-header{display:none;text-align:center;padding:1rem;border-bottom:1px solid var(--border);background:rgba(245,240,232,.8);position:sticky;top:0;z-index:100}
-    .mobile-header h1{font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.1em}
-    .mobile-toggle{display:none;background:none;border:1px solid var(--border);border-radius:.4rem;padding:.4rem .8rem;font-family:inherit;font-size:.85rem;color:var(--text);cursor:pointer;margin:.5rem auto;background:var(--card-bg)}
-    .mobile-search{display:none;padding:0 1rem .75rem}
-    .mobile-search input{width:100%;padding:.6rem 1rem;border:1px solid var(--border);border-radius:1.5rem;font-size:.9rem;font-family:inherit;background:var(--card-bg);color:var(--text);outline:none}
-    .book-item{border-bottom:1px solid rgba(45,80,22,.06)}
-    .book-row{display:flex;align-items:center;gap:.75rem;padding:.55rem .75rem;cursor:pointer;transition:background .2s}
-    .book-row:hover{background:rgba(143,188,143,.06)}
-    .book-row .arrow{font-size:.6rem;color:var(--text-muted);transition:transform .2s;flex-shrink:0;width:1em;text-align:center}
-    .book-row.open .arrow{transform:rotate(90deg)}
-    .book-row .b-core{flex:1;min-width:0}
-    .book-row .b-title{font-size:.9rem;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .book-row .b-title .hl{background:rgba(143,188,143,.25);padding:0 2px;border-radius:2px;color:var(--accent)}
-    .book-row .b-brief{font-size:.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1rem}
-    .book-row .b-dl{font-size:.85rem;color:var(--accent);text-decoration:none;flex-shrink:0;padding:.15rem .3rem;border-radius:.25rem;transition:all .2s;opacity:.6}
-    .book-row .b-dl:hover{opacity:1;background:rgba(143,188,143,.1)}
-    .book-row .b-fmt{font-size:.68rem;padding:.1rem .4rem;border-radius:.25rem;background:var(--tag-bg);color:var(--text-muted);border:1px solid rgba(143,188,143,.15);flex-shrink:0}
-    .book-row .b-fmt.pdf{background:rgba(45,80,22,.08);color:var(--accent)}
-    .book-detail{display:none;padding:0 .75rem .75rem 2rem;border-left:2px solid var(--accent-pale);margin-left:.75rem}
-    .book-detail.open{display:block}
-    .book-detail .d-row{font-size:.82rem;margin-bottom:.25rem}
-    .book-detail .d-label{color:var(--text-muted);display:inline-block;min-width:3.5em}
-    .book-detail .d-desc{font-size:.83rem;color:var(--text-light);font-weight:300;margin:.5rem 0 .3rem;padding:.4rem .5rem;background:rgba(143,188,143,.06);border-radius:.3rem}
-    .book-detail .d-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin:.3rem 0}
-    .book-detail .d-tag{font-size:.72rem;padding:.1rem .45rem;border-radius:.25rem;background:rgba(91,138,60,.1);color:var(--accent-light);border:1px solid rgba(91,138,60,.15)}
-    .book-detail .d-link{display:inline-block;margin-top:.3rem;font-size:.82rem;color:var(--accent);text-decoration:none;padding:.25rem .7rem;border:1px solid var(--accent-pale);border-radius:.3rem;transition:all .2s}
-    .book-detail .d-link:hover{background:var(--accent);color:#fff}
-    .pagination{display:flex;justify-content:center;gap:.3rem;margin-top:1.5rem;flex-wrap:wrap}
-    .pagination a,.pagination span{padding:.35rem .7rem;border:1px solid var(--border);border-radius:.3rem;text-decoration:none;color:var(--text);font-size:.85rem;background:var(--card-bg)}
-    .pagination .current{background:linear-gradient(135deg,var(--accent),var(--accent-light));color:#fff;border-color:var(--accent)}
-    .pagination a:hover{background:var(--tag-bg);border-color:var(--accent-pale)}
-    .no-results{text-align:center;padding:3rem;color:var(--text-light)}
-    @media(max-width:860px){.mobile-header,.mobile-toggle,.mobile-search{display:block}.sidebar{position:fixed;top:0;left:0;height:100vh;z-index:200;transform:translateX(-100%);transition:transform .3s;background:rgba(245,240,232,.97);box-shadow:4px 0 20px rgba(0,0,0,.1)}.sidebar.open{transform:translateX(0)}.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:199}.sidebar-overlay.open{display:block}.sidebar-logo{display:none}.main-content{padding:1rem}.page-wrap{flex-direction:column}}
-    @media(min-width:861px){.mobile-header,.mobile-toggle,.mobile-search{display:none}.sidebar-overlay{display:none!important}}
-    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--accent-pale);border-radius:3px}
-  </style>
-</head>
-<body>
-  <div class="mobile-header">
-    <h1>琅嬛福地</h1>
-    <button class="mobile-toggle" id="menuToggle">☰ 分類導航</button>
-    <div class="mobile-search"><input type="text" id="mobileSearchInput" placeholder="搜索書名、標籤..." /></div>
+<Base sortedTags={sortedTags} totalEntries={data.totalEntries} source={data.source} activeTag={tag}>
+  <div class="cat-header">
+    <h2>{tag}</h2>
+    <p class="cat-desc">{desc}</p>
+    <p class="cat-count" id="bookCount">共 {total} 冊</p>
   </div>
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <div class="page-wrap">
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-logo"><h1>琅嬛福地</h1><p>中華傳統道文化數字圖書館</p></div>
-      <div class="sidebar-search"><input type="text" id="searchInput" placeholder="搜索書名、標籤..." /></div>
-      <div class="sidebar-stats"><span>共 {data.totalEntries} 冊</span><span>{sortedTags.length} 類</span></div>
-      <nav class="sidebar-nav">
-        <a href="/">全部</a>
-        {sortedTags.map(([t, c]) => <a href={`/${encodeURIComponent(t)}/`} class:list={[{ active: t === tag }]}><span>{t}</span><span class="count">{c}</span></a>)}
-      </nav>
-      <div class="sidebar-footer">數據來源：<a href={source} target="_blank">白雲深處人家</a></div>
-    </aside>
-    <main class="main-content">
-      <div class="cat-header">
-        <h2>{tag}</h2>
-        <p class="cat-desc">{desc}</p>
-        <p class="cat-count" id="bookCount">共 {total} 冊</p>
-      </div>
-      <div id="bookList" class="book-list"></div>
-      <div id="pagination" class="pagination"></div>
-    </main>
-  </div>
-  <script define:vars={{ BOOKS: filtered, BASE_URL: 'https://www.homeinmists.com/', PER_PAGE: 50, TAG: tag }}>
-    var currentPage=1,filtered=[];
-    var DY=['漢','魏','晉','南北朝','隋','唐','五代','宋','遼','金','西夏','元','明','清','民國','近現代'];
-    function parse(t){
-      var dy='',au='',ver='',core=t;
-      for(var i=0;i<DY.length;i++){var d=DY[i],r=new RegExp('[.．]'+d+'[.．]?(.{1,6}?)[.．撰著編輯選]'),m=t.match(r);if(m){dy=d;au=m[1].replace(/^[.．]/,'');break;}}
-      var di=t.indexOf('.');if(di<0)di=t.indexOf('．');
-      if(di>0){core=t.substring(0,di);ver=t.substring(di+1);}
-      core=core.replace(/^[📝📗🔍📖\u3000]+/,'').trim();
-      if(!au){var am=t.match(/[.．]?([\u4e00-\u9fff]{1,6})[.．]?(撰|著|編|述|註|校|整理|選)/);if(am)au=am[1];}
-      return{dynasty:dy,author:au,core:core,version:ver};
-    }
-    function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
-    function toggle(idx){var r=document.getElementById('br-'+idx),d=document.getElementById('bd-'+idx);if(r&&d){r.classList.toggle('open');d.classList.toggle('open');}}
-    window.toggle=toggle;
-    function renderBook(b,idx,q){
-      var p=parse(b.title),title=p.core||b.title;
-      if(q){var re=new RegExp('('+esc(q)+')','gi');title=title.replace(re,'<span class="hl">$1</span>');}
-      var brief='';if(p.dynasty)brief+=p.dynasty;if(p.author)brief+=(brief?' · ':'')+p.author;
-      if(!brief&&p.version)brief=p.version.substring(0,30);
-      var url=b.id.startsWith('http')?b.id:BASE_URL+b.id;
-      var fmt=b.format==='pdf'?'PDF':b.format==='webpage'?'網頁':'外鏈';
-      var fc=b.format==='pdf'?'pdf':'';
-      var h='<div class="d-row"><span class="d-label">書名</span><span>'+p.core+'</span></div>';
-      if(p.dynasty)h+='<div class="d-row"><span class="d-label">朝代</span><span>'+p.dynasty+'</span></div>';
-      if(p.author)h+='<div class="d-row"><span class="d-label">作者</span><span>'+p.author+'</span></div>';
-      if(p.version)h+='<div class="d-row"><span class="d-label">版本</span><span>'+p.version+'</span></div>';
-      if(b.summary)h+='<div class="d-desc">📖 '+b.summary+'</div>';
-      if(b.tags&&b.tags.length)h+='<div class="d-tags">'+b.tags.map(function(t){return'<span class="d-tag">'+t+'</span>';}).join('')+'</div>';
-      h+='<a class="d-link" href="'+url+'" target="_blank">查閱 / 下載 ↗</a>';
-      return'<div class="book-item"><div class="book-row" id="br-'+idx+'" onclick="toggle('+idx+')"><span class="arrow">▶</span><div class="b-core"><div class="b-title">'+title+'</div>'+(brief?'<div class="b-brief">'+brief+'</div>':'')+'</div><a class="b-dl" href="'+url+'" target="_blank" onclick="event.stopPropagation()" title="下載">⬇</a><span class="b-fmt '+fc+'">'+fmt+'</span></div><div class="book-detail" id="bd-'+idx+'">'+h+'</div></div>';
-    }
-    function getQ(){return(new URLSearchParams(window.location.search).get('q')||'').toLowerCase();}
-    function filter(){var q=getQ();if(!q)return BOOKS;return BOOKS.filter(function(b){return b.title.toLowerCase().indexOf(q)!==-1||(b.tags&&b.tags.join(' ').toLowerCase().indexOf(q)!==-1)||(b.summary&&b.summary.toLowerCase().indexOf(q)!==-1);});}
-    function render(){
-      filtered=filter();var tp=Math.ceil(filtered.length/PER_PAGE);if(currentPage>tp)currentPage=tp||1;
-      var s=(currentPage-1)*PER_PAGE,page=filtered.slice(s,s+PER_PAGE),q=getQ();
-      document.getElementById('bookCount').textContent='共 '+filtered.length+' 冊';
-      var list=document.getElementById('bookList');
-      if(!page.length){list.innerHTML='<div class="no-results">未找到匹配的書目</div>';document.getElementById('pagination').innerHTML='';return;}
-      list.innerHTML=page.map(function(b,i){return renderBook(b,s+i,q);}).join('');
-      var pag=document.getElementById('pagination');
-      if(tp<=1){pag.innerHTML='';return;}
-      var html='',st=Math.max(1,currentPage-3),en=Math.min(tp,st+6);if(en-st<6)st=Math.max(1,en-6);
-      if(st>1)html+='<a href="#" onclick="goPage(1);return false">1</a><span>…</span>';
-      for(var i=st;i<=en;i++)html+=i===currentPage?'<span class="current">'+i+'</span>':'<a href="#" onclick="goPage('+i+');return false">'+i+'</a>';
-      if(en<tp)html+='<span>…</span><a href="#" onclick="goPage('+tp+');return false">'+tp+'</a>';
-      pag.innerHTML=html;
-    }
-    window.goPage=function(p){currentPage=p;render();window.scrollTo(0,0);};
-    var inp=document.getElementById('searchInput');inp.value=getQ();
-    var db;inp.addEventListener('input',function(){clearTimeout(db);db=setTimeout(function(){var v=inp.value.trim(),u=new URL(window.location);if(v)u.searchParams.set('q',v);else u.searchParams.delete('q');history.replaceState(null,'',u);currentPage=1;render();},300);});
-    render();
-  </script>
-  <script>
-    var menuBtn=document.getElementById('menuToggle'),sidebar=document.querySelector('.sidebar'),overlay=document.getElementById('sidebarOverlay');
-    if(toggle){toggle.addEventListener('click',function(){sidebar.classList.toggle('open');overlay.classList.toggle('open');});overlay.addEventListener('click',function(){sidebar.classList.remove('open');overlay.classList.remove('open');});}
-    var mi=document.getElementById('mobileSearchInput'),si=document.getElementById('searchInput');
-    if(mi&&si)mi.addEventListener('input',function(){si.value=mi.value;si.dispatchEvent(new Event('input'));});
-  </script>
-</body>
-</html>
+  <div id="bookList" class="book-list"></div>
+  <div id="pagination" class="pagination"></div>
+</Base>
+
+<script define:vars={{ BOOKS: filtered, BASE_URL: 'https://www.homeinmists.com/', PER_PAGE: 50, TAG: tag }}>
+  var currentPage=1,filtered=[];
+  var DY=['漢','魏','晉','南北朝','隋','唐','五代','宋','遼','金','西夏','元','明','清','民國','近現代'];
+  function parse(t){
+    var dy='',au='',ver='',core=t;
+    for(var i=0;i<DY.length;i++){var d=DY[i],r=new RegExp('[.．]'+d+'[.．]?(.{1,6}?)[.．撰著編輯選]'),m=t.match(r);if(m){dy=d;au=m[1].replace(/^[.．]/,'');break;}}
+    var di=t.indexOf('.');if(di<0)di=t.indexOf('．');
+    if(di>0){core=t.substring(0,di);ver=t.substring(di+1);}
+    core=core.replace(/^[📝📗🔍📖\u3000]+/,'').trim();
+    if(!au){var am=t.match(/[.．]?([\u4e00-\u9fff]{1,6})[.．]?(撰|著|編|述|註|校|整理|選)/);if(am)au=am[1];}
+    return{dynasty:dy,author:au,core:core,version:ver};
+  }
+  function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+  function toggle(idx){var r=document.getElementById('br-'+idx),d=document.getElementById('bd-'+idx);if(r&&d){r.classList.toggle('open');d.classList.toggle('open');}}
+  window.toggle=toggle;
+  function renderBook(b,idx,q){
+    var p=parse(b.title),title=p.core||b.title;
+    if(q){var re=new RegExp('('+esc(q)+')','gi');title=title.replace(re,'<span class="hl">$1</span>');}
+    var brief='';if(p.dynasty)brief+=p.dynasty;if(p.author)brief+=(brief?' · ':'')+p.author;
+    if(!brief&&p.version)brief=p.version.substring(0,30);
+    var url=b.id.startsWith('http')?b.id:BASE_URL+b.id;
+    var fmt=b.format==='pdf'?'PDF':b.format==='webpage'?'網頁':'外鏈';
+    var fc=b.format==='pdf'?'pdf':'';
+    var h='<div class="d-row"><span class="d-label">書名</span><span>'+p.core+'</span></div>';
+    if(p.dynasty)h+='<div class="d-row"><span class="d-label">朝代</span><span>'+p.dynasty+'</span></div>';
+    if(p.author)h+='<div class="d-row"><span class="d-label">作者</span><span>'+p.author+'</span></div>';
+    if(p.version)h+='<div class="d-row"><span class="d-label">版本</span><span>'+p.version+'</span></div>';
+    if(b.summary)h+='<div class="d-desc">📖 '+b.summary+'</div>';
+    if(b.tags&&b.tags.length)h+='<div class="d-tags">'+b.tags.map(function(t){return'<span class="d-tag">'+t+'</span>';}).join('')+'</div>';
+    h+='<a class="d-link" href="'+url+'" target="_blank">查閱 / 下載 ↗</a>';
+    return'<div class="book-item"><div class="book-row" id="br-'+idx+'" onclick="toggle('+idx+')"><span class="arrow">▶</span><div class="b-core"><div class="b-title">'+title+'</div>'+(brief?'<div class="b-brief">'+brief+'</div>':'')+'</div><a class="b-dl" href="'+url+'" target="_blank" onclick="event.stopPropagation()" title="下載">⬇</a><span class="b-fmt '+fc+'">'+fmt+'</span></div><div class="book-detail" id="bd-'+idx+'">'+h+'</div></div>';
+  }
+  function getQ(){return(new URLSearchParams(window.location.search).get('q')||'').toLowerCase();}
+  function filter(){var q=getQ();if(!q)return BOOKS;return BOOKS.filter(function(b){return b.title.toLowerCase().indexOf(q)!==-1||(b.tags&&b.tags.join(' ').toLowerCase().indexOf(q)!==-1)||(b.summary&&b.summary.toLowerCase().indexOf(q)!==-1);});}
+  function render(){
+    filtered=filter();var tp=Math.ceil(filtered.length/PER_PAGE);if(currentPage>tp)currentPage=tp||1;
+    var s=(currentPage-1)*PER_PAGE,page=filtered.slice(s,s+PER_PAGE),q=getQ();
+    document.getElementById('bookCount').textContent='共 '+filtered.length+' 冊';
+    var list=document.getElementById('bookList');
+    if(!page.length){list.innerHTML='<div class="no-results">未找到匹配的書目</div>';document.getElementById('pagination').innerHTML='';return;}
+    list.innerHTML=page.map(function(b,i){return renderBook(b,s+i,q);}).join('');
+    var pag=document.getElementById('pagination');
+    if(tp<=1){pag.innerHTML='';return;}
+    var html='',st=Math.max(1,currentPage-3),en=Math.min(tp,st+6);if(en-st<6)st=Math.max(1,en-6);
+    if(st>1)html+='<a href="#" onclick="goPage(1);return false">1</a><span>…</span>';
+    for(var i=st;i<=en;i++)html+=i===currentPage?'<span class="current">'+i+'</span>':'<a href="#" onclick="goPage('+i+');return false">'+i+'</a>';
+    if(en<tp)html+='<span>…</span><a href="#" onclick="goPage('+tp+');return false">'+tp+'</a>';
+    pag.innerHTML=html;
+  }
+  window.goPage=function(p){currentPage=p;render();window.scrollTo(0,0);};
+  var inp=document.getElementById('searchInput');inp.value=getQ();
+  var db;inp.addEventListener('input',function(){clearTimeout(db);db=setTimeout(function(){var v=inp.value.trim(),u=new URL(window.location);if(v)u.searchParams.set('q',v);else u.searchParams.delete('q');history.replaceState(null,'',u);currentPage=1;render();},300);});
+  render();
+</script>
